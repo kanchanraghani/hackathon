@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 
 @Component({
   selector: 'app-confirmation',
@@ -9,15 +10,16 @@ import { Location } from '@angular/common';
 })
 export class ConfirmationComponent implements OnInit {
 
-   constructor(
+  constructor(
     private route: ActivatedRoute,
-    private location: Location
-  ) {}
+    private location: Location,
+    public dialogRef: MatDialogRef<ConfirmationComponent>
+  ) { }
 
   ngOnInit() {
   }
-  
-   goBack(): void {
+
+  goBack(): void {
     this.location.back();
   }
 

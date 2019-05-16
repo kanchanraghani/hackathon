@@ -1,5 +1,7 @@
 /* Application-wide Styles */
 
 .flex-grow {
-   height: 90vh;
+  /* height: 90vh; */
+  background-color: #f2f3f5;
+  height: -webkit-fill-available;
 }

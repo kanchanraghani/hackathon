@@ -1,16 +1,18 @@
 button {
   margin-top: 20px;
   font-family: Arial;
-  background-color: #eee;
+  background-color: rgb(101, 0, 141);
   border: none;
   padding: 5px 10px;
   border-radius: 4px;
   cursor: pointer;
   cursor: hand;
 }
+
 button:hover {
-  background-color: #cfd8dc;
+  background-color: #ff6600;
 }
+
 button:disabled {
   background-color: #eee;
   color: #ccc;
