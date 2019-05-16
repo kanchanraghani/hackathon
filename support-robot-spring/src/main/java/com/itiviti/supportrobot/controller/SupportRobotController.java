@@ -5,7 +5,6 @@ import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.itiviti.supportrobot.domain.User;
 import com.itiviti.supportrobot.service.NotificationService;
 import com.itiviti.supportrobot.service.RequestResolverException;
 import com.itiviti.supportrobot.service.RequestResolverService;
@@ -13,6 +12,8 @@ import com.itiviti.supportrobot.service.RequestResolverService;
 @RestController
 public class SupportRobotController
 {
+    private String email = "dfilimon@itiviti.com";
+
     @Autowired
     private RequestResolverService requestResolverService;
 
@@ -22,15 +23,12 @@ public class SupportRobotController
     @RequestMapping("/request-logs")
     public String requestLogs()
     {
-        // create user
-        User user = new User("dfilimon", "dfilimon@itiviti.com");
-
         // send an email
-        String status = "The session info has been emailed successfully.";
+        String status = "The logs have been emailed successfully.";
         try
         {
             Path path = requestResolverService.getAttachment("20190508", "", "SOCGENCRD");
-            notificationService.sendReplyWithAttachment(user, path);
+            notificationService.sendReplyWithAttachment(email, path);
         }
         catch (RequestResolverException e)
         {
@@ -48,6 +46,22 @@ public class SupportRobotController
     @RequestMapping("/request-session-info")
     public String requestSessionInfo()
     {
-        return "The requested information has been emailed to you.";
+        String status = "The session info has been emailed successfully.";
+        try
+        {
+            Path path = requestResolverService.getSessionInfo("I_CLIENT_FIX44");
+            notificationService.sendReplyWithAttachment(email, path);
+        }
+        catch (RequestResolverException e)
+        {
+            status = "The session info could not be retrieved.";
+            e.printStackTrace();
+        }
+        catch (MessagingException e)
+        {
+            status = "The email could not be sent.";
+            e.printStackTrace();
+        }
+        return status;
     }
 }

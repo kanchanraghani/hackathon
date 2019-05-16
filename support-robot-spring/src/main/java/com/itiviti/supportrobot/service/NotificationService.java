@@ -1,6 +1,5 @@
 package com.itiviti.supportrobot.service;
 
-import java.io.File;
 import java.nio.file.Path;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -10,7 +9,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import com.itiviti.supportrobot.domain.User;
 
 @Service
 public class NotificationService
@@ -23,27 +21,25 @@ public class NotificationService
         this.emailSender = javaMailSender;
     }
 
-    public void sendNotification(User user)
+    public void sendNotification(String email)
     {
-        // send email
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(user.getEmailAddress());
-        mailMessage.setFrom("support@itiviti.com");
-        mailMessage.setSubject("Your Support Request");
-        mailMessage.setText("Here's your request:...");
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setFrom("support@itiviti.com");
+        message.setSubject("Your Logs Request");
+        message.setText("Here's your request:...");
 
-        emailSender.send(mailMessage);
+        emailSender.send(message);
     }
 
-    public void sendReplyWithAttachment(User user, Path path) throws MessagingException
+    public void sendReplyWithAttachment(String email, Path path) throws MessagingException
     {
-        // send email
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
         helper.setFrom("support@itiviti.com");
-        helper.setTo(user.getEmailAddress());
-        helper.setSubject("Your Support Request");
+        helper.setTo(email);
+        helper.setSubject("Your Session Information");
         helper.setText("Please find the requested information attached.");
 
         FileSystemResource file = new FileSystemResource(path.toFile());

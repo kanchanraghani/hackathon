@@ -34,6 +34,21 @@ public class RequestResolverService
         return path;
     }
 
+    public Path getSessionInfo(String targetCompId) throws RequestResolverException
+    {
+        Path path = Paths.get(targetCompId + ".ini");
+        try
+        {
+            Files.readAllLines(path);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            throw new RequestResolverException("Could not access ini file.");
+        }
+        return path;
+    }
+
     private Predicate<String> getLinesForTime(String date, String time)
     {
         return line -> line.matches(getISODate(date) + " " + time + ".*");
