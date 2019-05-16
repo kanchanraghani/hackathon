@@ -12,6 +12,7 @@
                <select  class="form-control" name="requestType" [(ngModel)]="model.requestType" #subject="ngModel" id="requestType" required>
                <option value="1">Log request</option>
                <option value="2">Session Disconnection reason</option>
+			   <option value="3">Session Information</option>
                </select>
             </div>
 			<div *ngIf="model.requestType!=2">
