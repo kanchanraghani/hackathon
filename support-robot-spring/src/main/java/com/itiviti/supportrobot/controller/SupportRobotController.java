@@ -16,7 +16,7 @@ import com.itiviti.supportrobot.domain.SupportRequest;
 import com.itiviti.supportrobot.service.EmailService;
 import com.itiviti.supportrobot.service.RequestResolverException;
 import com.itiviti.supportrobot.service.RequestResolverService;
-
+//aasss
 @RestController
 public class SupportRobotController
 {
@@ -28,7 +28,7 @@ public class SupportRobotController
     @Autowired
     private EmailService emailService;
 
-    @RequestMapping(value = "/submitrequest", method = RequestMethod.POST)
+    @RequestMapping(value = "/submitrequest", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value = HttpStatus.OK)
     public String process(@RequestBody SupportRequest supportRequest)
     {
