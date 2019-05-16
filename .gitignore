@@ -1,5 +1,5 @@
 HELP.md
-/target/
+/support-robot-spring/target/
 !.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###
@@ -18,12 +18,12 @@ HELP.md
 *.ipr
 
 ### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-/build/
+/support-robot-spring/nbproject/private/
+/support-robot-spring/nbbuild/
+/support-robot-spring/dist/
+/support-robot-spring/nbdist/
+/support-robot-spring/.nb-gradle/
+/support-robot-spring/build/
 
 ### VS Code ###
 .vscode/
