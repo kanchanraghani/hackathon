@@ -1,16 +1,21 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DataService {
 
-  _url = 'http://localhost:8080/submitrequest';
+  url = 'http://localhost:9696/submitrequest';
+  httpOptions = {
+    headers: new HttpHeaders({
+      'Content-Type': 'application/json'
+    })
+  };
 
   constructor(private http: HttpClient) { }
 
-  sendDetails(clientRequest){
-    return this.http.post<any>(this._url, clientRequest);
-}
+  sendDetails(clientRequest) {
+    return this.http.post(this.url, clientRequest, this.httpOptions);
+  }
 }
