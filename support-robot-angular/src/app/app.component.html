@@ -7,6 +7,13 @@
                 <h3>Create new support request</h3>
                 <form name="form" (ngSubmit)="f.form.valid && onSubmit()" #f="ngForm" novalidate>
 				<br>
+				   <div class="form-group">
+                        <label for="requestType">Request Type:</label>
+						 <select  class="form-control" name="requestType" [(ngModel)]="model.requestType" #subject="ngModel" id="requestType" required>
+						  <option value="1">Log request</option>
+						  <option value="2">Session Disconnection reason</option>
+						</select>
+                    </div>
                     <div class="form-group">
                         <label for="subject">Subject: </label>
                         <input type="text" class="form-control" name="firstName" [(ngModel)]="model.subject" #subject="ngModel" [ngClass]="{ 'is-invalid': f.submitted && subject.invalid }" required />
@@ -16,10 +23,10 @@
                     </div>
                     <div class="form-group">
                         <label for="description">Description:</label>
-                        <input type="text" class="form-control" name="description" [(ngModel)]="model.description" #lastName="ngModel" [ngClass]="{ 'is-invalid': f.submitted && description.invalid }" required />
-                        <div *ngIf="f.submitted && description.invalid" class="invalid-feedback">
+                        <textarea class="form-control" name="description" [(ngModel)]="model.description" #lastName="ngModel" [ngClass]="{ 'is-invalid': f.submitted && description }" required ></textarea>
+                        <!-- <div *ngIf="f.submitted && !description" class="invalid-feedback">
                             <div *ngIf="description.errors.required">Description is required</div>
-                        </div>
+                        </div> -->
                     </div>
                     <div class="form-group">
                         <label for="email">Email:</label>
