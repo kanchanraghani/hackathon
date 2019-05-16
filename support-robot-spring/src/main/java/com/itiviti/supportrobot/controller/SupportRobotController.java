@@ -29,7 +29,7 @@ public class SupportRobotController
         try
         {
             Path path = requestResolverService.getLogs("2019-05-08T18:00:00.000Z", "2019-05-08T18:00:00.000Z", "SOCGENCRD");
-            notificationService.sendReplyWithAttachment(email, path, "Your session info request");
+            notificationService.sendReplyWithAttachment(email, path, "Your logs request", "Please find the request information attached.");
             Files.delete(path);
         }
         catch (RequestResolverException e)
@@ -62,9 +62,8 @@ public class SupportRobotController
         String status = "The session info has been emailed successfully.";
         try
         {
-            Path path = requestResolverService.getSessionInfo("I_CLIENT_FIX44");
-            notificationService.sendReplyWithAttachment(email, path, "Your logs request");
-            Files.delete(path);
+            String sessionInfo = requestResolverService.getSessionInfo("I_CLIENT_FIX44");
+            notificationService.sendReply(email, sessionInfo, "Your session info request", sessionInfo);
         }
         catch (RequestResolverException e)
         {
@@ -74,10 +73,6 @@ public class SupportRobotController
         catch (MessagingException e)
         {
             status = "The email could not be sent.";
-            e.printStackTrace();
-        }
-        catch (IOException e)
-        {
             e.printStackTrace();
         }
         return status;

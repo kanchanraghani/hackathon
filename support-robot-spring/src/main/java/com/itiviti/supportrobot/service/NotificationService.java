@@ -20,7 +20,7 @@ public class NotificationService
         this.emailSender = javaMailSender;
     }
 
-    public void sendReplyWithAttachment(String email, Path path, String subject) throws MessagingException
+    public void sendReplyWithAttachment(String email, Path path, String subject, String body) throws MessagingException
     {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -28,11 +28,19 @@ public class NotificationService
         helper.setFrom("support@itiviti.com");
         helper.setTo(email);
         helper.setSubject(subject);
-        helper.setText("Please find the requested information attached.");
+        helper.setText(body);
 
-        FileSystemResource file = new FileSystemResource(path.toFile());
-        helper.addAttachment(file.getFilename(), file);
+        if (path != null)
+        {
+            FileSystemResource file = new FileSystemResource(path.toFile());
+            helper.addAttachment(file.getFilename(), file);
+        }
 
         emailSender.send(message);
+    }
+
+    public void sendReply(String email, String sessionInfo, String subject, String body) throws MessagingException
+    {
+        sendReplyWithAttachment(email, null, subject, body);
     }
 }

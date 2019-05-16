@@ -11,7 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
+import org.ini4j.Ini;
+import org.ini4j.IniPreferences;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -60,23 +63,41 @@ public class RequestResolverService
         }
         while (start.isBefore(end) || start.isEqual(end));
 
-        logger.fine("Paths are: " + paths);
+        logger.info("Paths are: " + paths);
         return paths;
     }
 
-    public Path getSessionInfo(String targetCompId) throws RequestResolverException
+    public String getSessionInfo(String targetCompId) throws RequestResolverException
     {
         Path path = Paths.get(targetCompId + ".ini");
         try
         {
-            Files.readAllLines(path);
+            Ini ini = new Ini(path.toFile());
+            Preferences prefs = new IniPreferences(ini);
+            return populateSessionInfo(prefs).toString();
         }
         catch (IOException e)
         {
             e.printStackTrace();
             throw new RequestResolverException("Could not access ini file.");
         }
-        return path;
+    }
+
+    private StringBuilder populateSessionInfo(Preferences prefs)
+    {
+        StringBuilder result = new StringBuilder();
+        result.append("SenderCompID: ").append(prefs.node("session").get("SenderCompID", "")).append(System.lineSeparator());
+        result.append("TargetCompID: ").append(prefs.node("session").get("TargetCompID", "")).append(System.lineSeparator());
+        result.append("Version: ").append(prefs.node("session").get("Version", "")).append(System.lineSeparator());
+        result.append(System.lineSeparator());
+        result.append("timers/doStart:").append(System.lineSeparator());
+        result.append("trigger: ").append(prefs.node("timers/doStart").get("trigger", "")).append(System.lineSeparator());
+        result.append("timezone: ").append(prefs.node("timers/doStart").get("timezone", "")).append(System.lineSeparator());
+        result.append(System.lineSeparator()).append(System.lineSeparator());
+        result.append("timers/doStopdoReset:").append(System.lineSeparator());
+        result.append("trigger: ").append(prefs.node("timers/doStopdoReset").get("trigger", "")).append(System.lineSeparator());
+        result.append("timezone: ").append(prefs.node("timers/doStopdoReset").get("timezone", "")).append(System.lineSeparator());
+        return result;
     }
 
     private static String removeLogPrefix(String line)
