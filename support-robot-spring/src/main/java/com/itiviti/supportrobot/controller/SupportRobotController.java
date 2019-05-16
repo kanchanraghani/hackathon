@@ -5,8 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.itiviti.supportrobot.domain.SupportRequest;
 import com.itiviti.supportrobot.service.NotificationService;
 import com.itiviti.supportrobot.service.RequestResolverException;
 import com.itiviti.supportrobot.service.RequestResolverService;
@@ -22,13 +24,27 @@ public class SupportRobotController
     @Autowired
     private NotificationService notificationService;
 
-    @RequestMapping("/request-logs")
-    public String requestLogs()
+    @RequestMapping("/submitrequest")
+    public String process(@RequestBody SupportRequest supportRequest)
+    {
+        switch (supportRequest.getRequestType())
+        {
+            case 1:
+                return logsRequest(supportRequest);
+            case 2:
+                return disconnectReasonRequest(supportRequest);
+            case 3:
+                return sessionDetailsRequest(supportRequest);
+        }
+        return "We could not process your request.";
+    }
+
+    private String logsRequest(SupportRequest supportRequest)
     {
         String status = "The logs have been emailed successfully.";
         try
         {
-            Path path = requestResolverService.getLogs("2019-05-08T18:00:00.000Z", "2019-05-08T18:00:00.000Z", "SOCGENCRD");
+            Path path = requestResolverService.getLogs(supportRequest.getStartDate(), supportRequest.getEndDate(), supportRequest.getFixSession(), supportRequest.getMsgTypes());
             notificationService.sendReplyWithAttachment(email, path, "Your logs request", "Please find the request information attached.");
             Files.delete(path);
         }
@@ -49,20 +65,26 @@ public class SupportRobotController
         return status;
     }
 
-    @RequestMapping("/request-disconnection-reason")
-    public String requestDisconnectionReason()
+    private String disconnectReasonRequest(SupportRequest supportRequest)
     {
-        String status = "The disconnection reason has been emailed successfully.";
-        return status;
+        String reason = "The disconnection reason could not be resolved.";
+        try
+        {
+            reason = requestResolverService.getDisconnectionReason("I_CLIENT_FIX44");
+        }
+        catch (RequestResolverException e)
+        {
+            e.printStackTrace();
+        }
+        return reason;
     }
 
-    @RequestMapping("/request-session-info")
-    public String requestSessionInfo()
+    private String sessionDetailsRequest(SupportRequest supportRequest)
     {
         String status = "The session info has been emailed successfully.";
         try
         {
-            String sessionInfo = requestResolverService.getSessionInfo("I_CLIENT_FIX44");
+            String sessionInfo = requestResolverService.getSessionInfo(supportRequest.getFixSession());
             notificationService.sendReply(email, sessionInfo, "Your session info request", sessionInfo);
         }
         catch (RequestResolverException e)

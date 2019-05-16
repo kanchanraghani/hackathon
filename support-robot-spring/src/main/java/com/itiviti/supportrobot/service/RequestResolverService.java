@@ -24,18 +24,24 @@ public class RequestResolverService
 
     private static DateTimeFormatter logFormat = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-    public Path getLogs(String startDate, String endDate, String sessionName) throws RequestResolverException
+    public Path getLogs(String startDate, String endDate, String sessionName, String[] messageTypes) throws RequestResolverException
     {
         Path outputPath = Paths.get(sessionName + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + ".txt");
+        logger.info("Output path is " + outputPath);
         try
         {
             List<Path> paths = getPaths(startDate, endDate);
+            logger.info("Paths are: " + paths);
             List<String> fullLogs = new ArrayList<>();
             for (Path path : paths)
             {
+                if (!Files.exists(path))
+                {
+                    continue;
+                }
                 List<String> dayLogs = Files.lines(path)
-                    .filter(getLinesForTargetCompId(sessionName))
-                    .filter(getTradingMessages())
+                    .filter(bySessionName(sessionName))
+                    .filter(byMessageTypes(messageTypesAsString(messageTypes)))
                     .map(RequestResolverService::removeLogPrefix)
                     .collect(Collectors.toList());
                 fullLogs.addAll(dayLogs);
@@ -48,6 +54,16 @@ public class RequestResolverService
             throw new RequestResolverException();
         }
         return outputPath;
+    }
+
+    private String messageTypesAsString(String[] messageTypes)
+    {
+        StringBuilder msgs = new StringBuilder();
+        for (String msg : messageTypes)
+        {
+            msgs.append(msg);
+        }
+        return msgs.toString();
     }
 
     private List<Path> getPaths(String startDate, String endDate)
@@ -63,7 +79,6 @@ public class RequestResolverService
         }
         while (start.isBefore(end) || start.isEqual(end));
 
-        logger.info("Paths are: " + paths);
         return paths;
     }
 
@@ -105,9 +120,10 @@ public class RequestResolverService
         return line.substring(line.indexOf(" : ") + 3);
     }
 
-    private Predicate<String> getLinesForTargetCompId(String targetCompId)
+    private Predicate<String> bySessionName(String sessionName)
     {
-        return line -> line.contains("56=" + targetCompId + "|");
+        String[] compIds = sessionName.split("~");
+        return line -> line.contains(compIds[0]) && line.contains(compIds[1]);
     }
 
     private Path getPath(String date)
@@ -115,8 +131,14 @@ public class RequestResolverService
         return Paths.get(date + ".txt");
     }
 
-    private Predicate<String> getTradingMessages()
+    private Predicate<String> byMessageTypes(String messageTypes)
     {
-        return line -> line.matches(".*\\|35=[DFG8]\\|.*");
+
+        return line -> line.matches(".*\\|35=[" + messageTypes + "]\\|.*");
+    }
+
+    public String getDisconnectionReason(String sessionName) throws RequestResolverException
+    {
+        throw new RequestResolverException();
     }
 }
