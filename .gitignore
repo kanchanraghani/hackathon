@@ -1,0 +1,76 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# compiled output
+/support-robot-angular/dist
+/support-robot-angular/tmp
+/support-robot-angular/out-tsc
+# Only exists if Bazel was run
+/support-robot-angular/bazel-out
+
+# dependencies
+/support-robot-angular/node_modules
+
+# profiling files
+chrome-profiler-events.json
+speed-measure-plugin.json
+
+# IDEs and editors
+.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# misc
+/support-robot-angular/.sass-cache
+/support-robot-angular/connect.lock
+/support-robot-angular/coverage
+/support-robot-angular/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/support-robot-angular/typings
+
+# System Files
+.DS_Store
+Thumbs.db 
+
+HELP.md
+/support-robot-spring/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/support-robot-spring/nbproject/private/
+/support-robot-spring/nbbuild/
+/support-robot-spring/dist/
+/support-robot-spring/nbdist/
+/support-robot-spring/.nb-gradle/
+/support-robot-spring/build/
+
+### VS Code ###
+.vscode/
