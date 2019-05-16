@@ -5,8 +5,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import com.itiviti.supportrobot.domain.SupportRequest;
 import com.itiviti.supportrobot.service.EmailService;
@@ -24,7 +28,8 @@ public class SupportRobotController
     @Autowired
     private EmailService emailService;
 
-    @RequestMapping("/submitrequest", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/submitrequest", method = RequestMethod.POST)
+    @ResponseStatus(value = HttpStatus.OK)
     public String process(@RequestBody SupportRequest supportRequest)
     {
         switch (supportRequest.getRequestType())
