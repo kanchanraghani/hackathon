@@ -7,6 +7,6 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   model: any = {};
-  title = 'Support Bot';
+  title = 'Support Robot';
 
 }
