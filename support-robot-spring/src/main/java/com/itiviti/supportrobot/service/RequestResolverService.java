@@ -5,33 +5,63 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RequestResolverService
 {
-    public Path getAttachment(String date, String time, String targetCompId) throws RequestResolverException
+    private static Logger logger = Logger.getLogger("RequestResolverService");
+
+    private static DateTimeFormatter logFormat = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+    public Path getLogs(String startDate, String endDate, String sessionName) throws RequestResolverException
     {
-        Path path = Paths.get("logs-" + date + ".txt");
+        Path outputPath = Paths.get(sessionName + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + ".txt");
         try
         {
-            List<String> logs = Files.lines(getPath(date))
-                .filter(getLinesForTime(date, time))
-                .filter(getLinesForTargetCompId(targetCompId))
-                .filter(getTradingMessages())
-                .collect(Collectors.toList());
-            Files.write(path, logs);
+            List<Path> paths = getPaths(startDate, endDate);
+            List<String> fullLogs = new ArrayList<>();
+            for (Path path : paths)
+            {
+                List<String> dayLogs = Files.lines(path)
+                    .filter(getLinesForTargetCompId(sessionName))
+                    .filter(getTradingMessages())
+                    .map(RequestResolverService::removeLogPrefix)
+                    .collect(Collectors.toList());
+                fullLogs.addAll(dayLogs);
+            }
+            Files.write(outputPath, fullLogs);
         }
         catch (IOException e)
         {
             e.printStackTrace();
             throw new RequestResolverException();
         }
-        return path;
+        return outputPath;
+    }
+
+    private List<Path> getPaths(String startDate, String endDate)
+    {
+        List<Path> paths = new ArrayList<>();
+        LocalDate start = LocalDate.parse(startDate.substring(0, 10));
+        LocalDate end = LocalDate.parse(endDate.substring(0, 10));
+
+        do
+        {
+            paths.add(getPath(start.format(logFormat)));
+            start = start.plusDays(1);
+        }
+        while (start.isBefore(end) || start.isEqual(end));
+
+        logger.fine("Paths are: " + paths);
+        return paths;
     }
 
     public Path getSessionInfo(String targetCompId) throws RequestResolverException
@@ -49,14 +79,9 @@ public class RequestResolverService
         return path;
     }
 
-    private Predicate<String> getLinesForTime(String date, String time)
+    private static String removeLogPrefix(String line)
     {
-        return line -> line.matches(getISODate(date) + " " + time + ".*");
-    }
-
-    private String getISODate(String date)
-    {
-        return LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd")).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        return line.substring(line.indexOf(" : ") + 3);
     }
 
     private Predicate<String> getLinesForTargetCompId(String targetCompId)

@@ -1,5 +1,7 @@
 package com.itiviti.supportrobot.controller;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +25,12 @@ public class SupportRobotController
     @RequestMapping("/request-logs")
     public String requestLogs()
     {
-        // send an email
         String status = "The logs have been emailed successfully.";
         try
         {
-            Path path = requestResolverService.getAttachment("20190508", "", "SOCGENCRD");
-            notificationService.sendReplyWithAttachment(email, path);
+            Path path = requestResolverService.getLogs("2019-05-08T18:00:00.000Z", "2019-05-08T18:00:00.000Z", "SOCGENCRD");
+            notificationService.sendReplyWithAttachment(email, path, "Your session info request");
+            Files.delete(path);
         }
         catch (RequestResolverException e)
         {
@@ -40,6 +42,17 @@ public class SupportRobotController
             status = "The email could not be sent.";
             e.printStackTrace();
         }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return status;
+    }
+
+    @RequestMapping("/request-disconnection-reason")
+    public String requestDisconnectionReason()
+    {
+        String status = "The disconnection reason has been emailed successfully.";
         return status;
     }
 
@@ -50,7 +63,8 @@ public class SupportRobotController
         try
         {
             Path path = requestResolverService.getSessionInfo("I_CLIENT_FIX44");
-            notificationService.sendReplyWithAttachment(email, path);
+            notificationService.sendReplyWithAttachment(email, path, "Your logs request");
+            Files.delete(path);
         }
         catch (RequestResolverException e)
         {
@@ -60,6 +74,10 @@ public class SupportRobotController
         catch (MessagingException e)
         {
             status = "The email could not be sent.";
+            e.printStackTrace();
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
         return status;
