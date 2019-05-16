@@ -4,10 +4,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SupportRobotApplication {
+public class SupportRobotApplication
+{
 
-	public static void main(String[] args) {
-		SpringApplication.run(SupportRobotApplication.class, args);
-	}
+    public static void main(String[] args)
+    {
+        SpringApplication.run(SupportRobotApplication.class, args);
+    }
 
 }

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.itiviti.supportrobot.domain.SupportRequest;
-import com.itiviti.supportrobot.service.NotificationService;
+import com.itiviti.supportrobot.service.EmailService;
 import com.itiviti.supportrobot.service.RequestResolverException;
 import com.itiviti.supportrobot.service.RequestResolverService;
 
@@ -22,7 +22,7 @@ public class SupportRobotController
     private RequestResolverService requestResolverService;
 
     @Autowired
-    private NotificationService notificationService;
+    private EmailService emailService;
 
     @RequestMapping("/submitrequest")
     public String process(@RequestBody SupportRequest supportRequest)
@@ -45,7 +45,7 @@ public class SupportRobotController
         try
         {
             Path path = requestResolverService.getLogs(supportRequest.getStartDate(), supportRequest.getEndDate(), supportRequest.getFixSession(), supportRequest.getMsgTypes());
-            notificationService.sendReplyWithAttachment(email, path, "Your logs request", "Please find the request information attached.");
+            emailService.sendReplyWithAttachment(email, path, "Your logs request", "Please find the request information attached.");
             Files.delete(path);
         }
         catch (RequestResolverException e)
@@ -70,7 +70,7 @@ public class SupportRobotController
         String reason = "The disconnection reason could not be resolved.";
         try
         {
-            reason = requestResolverService.getDisconnectionReason("I_CLIENT_FIX44");
+            reason = requestResolverService.getDisconnectionReason(supportRequest.getFixSession(), supportRequest.getStartDate(), supportRequest.getEndDate());
         }
         catch (RequestResolverException e)
         {
@@ -85,7 +85,7 @@ public class SupportRobotController
         try
         {
             String sessionInfo = requestResolverService.getSessionInfo(supportRequest.getFixSession());
-            notificationService.sendReply(email, sessionInfo, "Your session info request", sessionInfo);
+            emailService.sendReply(email, sessionInfo, "Your session info request", sessionInfo);
         }
         catch (RequestResolverException e)
         {

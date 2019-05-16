@@ -11,7 +11,9 @@ public class SupportRequest
     private String[] msgTypes;
     private String fixSession;
 
-    public SupportRequest() {}
+    public SupportRequest()
+    {
+    }
 
     public int getRequestType()
     {

@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -24,6 +25,11 @@ public class RequestResolverService
 
     private static DateTimeFormatter logFormat = DateTimeFormatter.ofPattern("yyyyMMdd");
 
+    private static String removeLogPrefix(String line)
+    {
+        return line.substring(line.indexOf(" : ") + 3);
+    }
+
     public Path getLogs(String startDate, String endDate, String sessionName, String[] messageTypes) throws RequestResolverException
     {
         Path outputPath = Paths.get(sessionName + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + ".txt");
@@ -32,20 +38,8 @@ public class RequestResolverService
         {
             List<Path> paths = getPaths(startDate, endDate);
             logger.info("Paths are: " + paths);
-            List<String> fullLogs = new ArrayList<>();
-            for (Path path : paths)
-            {
-                if (!Files.exists(path))
-                {
-                    continue;
-                }
-                List<String> dayLogs = Files.lines(path)
-                    .filter(bySessionName(sessionName))
-                    .filter(byMessageTypes(messageTypesAsString(messageTypes)))
-                    .map(RequestResolverService::removeLogPrefix)
-                    .collect(Collectors.toList());
-                fullLogs.addAll(dayLogs);
-            }
+            List<String> fullLogs = getFullLogsBySessionName(sessionName, messageTypes, paths);
+            fullLogs = fullLogs.stream().map(RequestResolverService::removeLogPrefix).collect(Collectors.toList());
             Files.write(outputPath, fullLogs);
         }
         catch (IOException e)
@@ -56,14 +50,39 @@ public class RequestResolverService
         return outputPath;
     }
 
-    private String messageTypesAsString(String[] messageTypes)
+    private List<String> getFullLogsBySessionName(String sessionName, String[] messageTypes, List<Path> paths) throws IOException
     {
-        StringBuilder msgs = new StringBuilder();
-        for (String msg : messageTypes)
+        List<String> fullLogs = new ArrayList<>();
+        for (Path path : paths)
         {
-            msgs.append(msg);
+            if (!Files.exists(path))
+            {
+                continue;
+            }
+            List<String> dayLogs = Files.lines(path)
+                .filter(bySessionName(sessionName))
+                .filter(byMessageTypes(messageTypesAsString(messageTypes)))
+                .collect(Collectors.toList());
+            fullLogs.addAll(dayLogs);
         }
-        return msgs.toString();
+        return fullLogs;
+    }
+    private List<String> getFullLogsByPluginName(String pluginName, List<Path> paths) throws IOException
+    {
+        List<String> fullLogs = new ArrayList<>();
+        for (Path path : paths)
+        {
+            if (!Files.exists(path))
+            {
+                continue;
+            }
+            List<String> dayLogs = Files.lines(path)
+                .filter(line -> line.contains(pluginName))
+                .map(RequestResolverService::removeLogPrefix)
+                .collect(Collectors.toList());
+            fullLogs.addAll(dayLogs);
+        }
+        return fullLogs;
     }
 
     private List<Path> getPaths(String startDate, String endDate)
@@ -80,6 +99,33 @@ public class RequestResolverService
         while (start.isBefore(end) || start.isEqual(end));
 
         return paths;
+    }
+
+    private Predicate<String> bySessionName(String sessionName)
+    {
+        String[] compIds = sessionName.split("~");
+        return line -> line.contains(compIds[0]) && line.contains(compIds[1]);
+    }
+
+    private Predicate<String> byMessageTypes(String messageTypes)
+    {
+
+        return line -> line.matches(".*\\|35=[" + messageTypes + "]{1,2}\\|.*");
+    }
+
+    private String messageTypesAsString(String[] messageTypes)
+    {
+        StringBuilder msgs = new StringBuilder();
+        for (String msg : messageTypes)
+        {
+            msgs.append(msg);
+        }
+        return msgs.toString();
+    }
+
+    private Path getPath(String date)
+    {
+        return Paths.get(date + ".txt");
     }
 
     public String getSessionInfo(String targetCompId) throws RequestResolverException
@@ -115,30 +161,31 @@ public class RequestResolverService
         return result;
     }
 
-    private static String removeLogPrefix(String line)
+    public String getDisconnectionReason(String sessionName, String startDate, String endDate) throws RequestResolverException
     {
-        return line.substring(line.indexOf(" : ") + 3);
+        List<Path> paths = getPaths(startDate, endDate);
+        try
+        {
+            List<String> logs = getFullLogsBySessionName(sessionName, new String[]{"A-Z0-9"}, paths);    // we first get all log lines for these session details
+            logger.info("" + Arrays.asList(logs.get(0).split(" ")));
+            String pluginName = logs.get(0).split(" ")[3];                                         // then we get the 4th element in the line split by spaces (plugin name between[])
+            pluginName = pluginName.substring(1, pluginName.length() - 1);                                // we remove the []
+            logs = getFullLogsByPluginName(pluginName, paths);                                           // now we get all log lines that match the plugin name since the lines above only had FIX messages, not all ULBridge logs
+
+            if (noResponse(logs))
+                return "Disconnection Reason: We are trying to connect but no response is received.";
+
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            throw new RequestResolverException("Could not get logs.");
+        }
+        return null;
     }
 
-    private Predicate<String> bySessionName(String sessionName)
+    private boolean noResponse(List<String> logs)
     {
-        String[] compIds = sessionName.split("~");
-        return line -> line.contains(compIds[0]) && line.contains(compIds[1]);
-    }
-
-    private Path getPath(String date)
-    {
-        return Paths.get(date + ".txt");
-    }
-
-    private Predicate<String> byMessageTypes(String messageTypes)
-    {
-
-        return line -> line.matches(".*\\|35=[" + messageTypes + "]\\|.*");
-    }
-
-    public String getDisconnectionReason(String sessionName) throws RequestResolverException
-    {
-        throw new RequestResolverException();
+        return logs.stream().anyMatch(line -> line.matches(".*Connection unsuccessful after .{1,2} attempts - stopping adapter"));
     }
 }
