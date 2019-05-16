@@ -24,7 +24,7 @@ public class SupportRobotController
     @Autowired
     private EmailService emailService;
 
-    @RequestMapping("/submitrequest")
+    @RequestMapping("/submitrequest", method = RequestMethod.POST, produces = "application/json")
     public String process(@RequestBody SupportRequest supportRequest)
     {
         switch (supportRequest.getRequestType())
