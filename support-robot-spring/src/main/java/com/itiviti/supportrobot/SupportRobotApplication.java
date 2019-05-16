@@ -1,4 +1,3 @@
-// ship-it day
 package com.itiviti.supportrobot;
 
 import org.springframework.boot.SpringApplication;
