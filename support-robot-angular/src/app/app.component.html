@@ -14,6 +14,7 @@
                <option value="2">Session Disconnection reason</option>
                </select>
             </div>
+			<div *ngIf="model.requestType!=2">
             <div class="form-row">
                <div class="col">
                   <div class="form-group">
@@ -36,7 +37,8 @@
                   </div>
                </div>
             </div>
-			<div class="form-group">
+			</div>
+			<div class="form-group" *ngIf="model.requestType!=2">
 				<label for="msgTypes">Select message type:</label>
 				<select multiple class="form-control" id="msgTypes" name="msgTypes" [(ngModel)]="model.msgTypes" #subject="ngModel">
 				  <option value="D">New Order Single [35=D]</option>
