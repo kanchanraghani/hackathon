@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -61,12 +60,13 @@ public class RequestResolverService
             }
             List<String> dayLogs = Files.lines(path)
                 .filter(bySessionName(sessionName))
-                .filter(byMessageTypes(messageTypesAsString(messageTypes)))
+                .filter(byMessageTypes(asString(messageTypes)))
                 .collect(Collectors.toList());
             fullLogs.addAll(dayLogs);
         }
         return fullLogs;
     }
+
     private List<String> getFullLogsByPluginName(String pluginName, List<Path> paths) throws IOException
     {
         List<String> fullLogs = new ArrayList<>();
@@ -93,7 +93,7 @@ public class RequestResolverService
 
         do
         {
-            paths.add(getPath(start.format(logFormat)));
+            paths.add(toPath(start.format(logFormat)));
             start = start.plusDays(1);
         }
         while (start.isBefore(end) || start.isEqual(end));
@@ -113,7 +113,7 @@ public class RequestResolverService
         return line -> line.matches(".*\\|35=[" + messageTypes + "]{1,2}\\|.*");
     }
 
-    private String messageTypesAsString(String[] messageTypes)
+    private String asString(String[] messageTypes)
     {
         StringBuilder msgs = new StringBuilder();
         for (String msg : messageTypes)
@@ -123,7 +123,7 @@ public class RequestResolverService
         return msgs.toString();
     }
 
-    private Path getPath(String date)
+    private Path toPath(String date)
     {
         return Paths.get(date + ".txt");
     }
@@ -167,14 +167,21 @@ public class RequestResolverService
         try
         {
             List<String> logs = getFullLogsBySessionName(sessionName, new String[]{"A-Z0-9"}, paths);    // we first get all log lines for these session details
-            logger.info("" + Arrays.asList(logs.get(0).split(" ")));
             String pluginName = logs.get(0).split(" ")[3];                                         // then we get the 4th element in the line split by spaces (plugin name between[])
             pluginName = pluginName.substring(1, pluginName.length() - 1);                                // we remove the []
             logs = getFullLogsByPluginName(pluginName, paths);                                           // now we get all log lines that match the plugin name since the lines above only had FIX messages, not all ULBridge logs
-
-            if (noResponse(logs))
-                return "Disconnection Reason: We are trying to connect but no response is received.";
-
+            if (noResponse(logs).size() > 0)
+            {
+                return "Disconnection Reason: We are trying to connect but no response is received.\n" + noResponse(logs).get(0);
+            }
+            else if (connectionFailed(logs).size() > 0)
+            {
+                return "Disconnection Reason: The connection was refused by the counterparty.\n" + connectionFailed(logs).get(0);
+            }
+            else if (msgSeqNum(logs).size() > 0)
+            {
+                return "Disconnection Reason: Sequence number mismatch.\n" + msgSeqNum(logs).get(0);
+            }
         }
         catch (IOException e)
         {
@@ -184,8 +191,18 @@ public class RequestResolverService
         return null;
     }
 
-    private boolean noResponse(List<String> logs)
+    private List<String> msgSeqNum(List<String> logs)
     {
-        return logs.stream().anyMatch(line -> line.matches(".*Connection unsuccessful after .{1,2} attempts - stopping adapter"));
+        return logs.stream().filter(line -> line.matches(".*MsgSeqNum received.*|.*Please check message sequence numbers with your counterparty.")).collect(Collectors.toList());
+    }
+
+    private List<String> connectionFailed(List<String> logs)
+    {
+        return logs.stream().filter(line -> line.matches(".*Connection refused.*")).collect(Collectors.toList());
+    }
+
+    private List<String> noResponse(List<String> logs)
+    {
+        return logs.stream().filter(line -> line.matches(".*Connection unsuccessful after .{1,2} attempts - stopping adapter.*|.*physical cnx finished.*")).collect(Collectors.toList());
     }
 }

@@ -71,8 +71,14 @@ public class SupportRobotController
         try
         {
             reason = requestResolverService.getDisconnectionReason(supportRequest.getFixSession(), supportRequest.getStartDate(), supportRequest.getEndDate());
+            if (reason == null)
+            {
+                emailService.sendReply("support@itiviti.com", supportRequest.getFixSession(), "Manual Disconnection Reason Request",
+                    "Please check disconnection reason between " + supportRequest.getStartDate() + " and " + supportRequest.getEndDate());
+                reason = "The disconnection reason could not be resolved. A support issue has been raised and we are looking into it.";
+            }
         }
-        catch (RequestResolverException e)
+        catch (RequestResolverException | MessagingException e)
         {
             e.printStackTrace();
         }
