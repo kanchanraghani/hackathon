@@ -1,5 +1,6 @@
 package com.itiviti.supportrobot.domain;
 
+import java.util.Arrays;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -63,6 +64,10 @@ public class SupportRequest
     public void setFixSession(String fixSession)
     {
         this.fixSession = fixSession;
+    }
+
+    public String toString() {
+        return "requestType: " + requestType + ", startDate: " + startDate + ", endDate: " + endDate + ", msgTypes: " + Arrays.toString(msgTypes) + ", fixSession: " + fixSession;
     }
 
 }

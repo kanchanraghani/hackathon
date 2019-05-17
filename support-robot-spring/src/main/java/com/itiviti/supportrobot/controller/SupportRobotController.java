@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.logging.Logger;
 import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -24,8 +25,8 @@ import com.itiviti.supportrobot.service.RequestResolverService;
 @RestController
 public class SupportRobotController
 {
+    private static Logger logger = Logger.getLogger("SupportRobotController");
     private String email = "dfilimon@itiviti.com";
-
     @Autowired
     private RequestResolverService requestResolverService;
 
@@ -36,6 +37,7 @@ public class SupportRobotController
     @ResponseStatus(value = HttpStatus.OK)
     public ResponseEntity process(@RequestBody SupportRequest supportRequest)
     {
+        logger.info("Request received: " + supportRequest);
         switch (supportRequest.getRequestType())
         {
             case 1:
