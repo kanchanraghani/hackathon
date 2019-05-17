@@ -56,7 +56,9 @@ public class SupportRobotController
     {
         try
         {
-            Path path = requestResolverService.getLogs(supportRequest.getStartDate(), supportRequest.getEndDate(), supportRequest.getFixSession(), supportRequest.getMsgTypes());
+            String startDate = supportRequest.getStartDate() != null ? supportRequest.getStartDate() : LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+            String endDate = supportRequest.getEndDate() != null ? supportRequest.getEndDate() : LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+            Path path = requestResolverService.getLogs(startDate, endDate, supportRequest.getFixSession(), supportRequest.getMsgTypes());
             emailService.sendReplyWithAttachment(email, path, "Your logs request", "Please find the request information attached.");
             Files.delete(path);
         }
