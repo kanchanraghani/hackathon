@@ -3,6 +3,8 @@ package com.itiviti.supportrobot.controller;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -37,14 +39,14 @@ public class SupportRobotController
         switch (supportRequest.getRequestType())
         {
             case 1:
-                 logsRequest(supportRequest);
-                 break;
+                logsRequest(supportRequest);
+                break;
             case 2:
-                 disconnectReasonRequest(supportRequest);
-                 break;
+                disconnectReasonRequest(supportRequest);
+                break;
             case 3:
-                 sessionDetailsRequest(supportRequest);
-                 break;
+                sessionDetailsRequest(supportRequest);
+                break;
         }
         HttpHeaders headers = new HttpHeaders();
         return new ResponseEntity<>(headers, HttpStatus.OK);
@@ -69,7 +71,8 @@ public class SupportRobotController
         String reason;
         try
         {
-            reason = requestResolverService.getDisconnectionReason(supportRequest.getFixSession(), supportRequest.getStartDate(), supportRequest.getEndDate());
+            String date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+            reason = requestResolverService.getDisconnectionReason(supportRequest.getFixSession(), date, date);
             if (reason == null)
             {
                 emailService.sendReply("support@itiviti.com", supportRequest.getFixSession(), "Manual Disconnection Reason Request",
