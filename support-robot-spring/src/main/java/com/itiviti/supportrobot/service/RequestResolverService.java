@@ -167,6 +167,10 @@ public class RequestResolverService
         try
         {
             List<String> logs = getFullLogsBySessionName(sessionName, new String[]{"A-Z0-9"}, paths);    // we first get all log lines for these session details
+            if (logs.size() == 0)
+            {
+                return "We could not find any disconnection for this session: " + sessionName;
+            }
             String pluginName = logs.get(0).split(" ")[3];                                         // then we get the 4th element in the line split by spaces (plugin name between[])
             pluginName = pluginName.substring(1, pluginName.length() - 1);                                // we remove the []
             logs = getFullLogsByPluginName(pluginName, paths);                                           // now we get all log lines that match the plugin name since the lines above only had FIX messages, not all ULBridge logs
