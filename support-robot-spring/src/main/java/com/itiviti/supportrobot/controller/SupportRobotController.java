@@ -1,14 +1,10 @@
 package com.itiviti.supportrobot.controller;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,7 +18,7 @@ import com.itiviti.supportrobot.domain.SupportRequest;
 import com.itiviti.supportrobot.service.EmailService;
 import com.itiviti.supportrobot.service.RequestResolverException;
 import com.itiviti.supportrobot.service.RequestResolverService;
-//aasss
+
 @RestController
 public class SupportRobotController
 {
@@ -42,45 +38,35 @@ public class SupportRobotController
         {
             case 1:
                  logsRequest(supportRequest);
+                 break;
             case 2:
                  disconnectReasonRequest(supportRequest);
+                 break;
             case 3:
                  sessionDetailsRequest(supportRequest);
+                 break;
         }
-//        return "We could not process your request.";
         HttpHeaders headers = new HttpHeaders();
         return new ResponseEntity<>(headers, HttpStatus.OK);
     }
 
-    private String logsRequest(SupportRequest supportRequest)
+    private void logsRequest(SupportRequest supportRequest)
     {
-        String status = "The logs have been emailed successfully.";
         try
         {
             Path path = requestResolverService.getLogs(supportRequest.getStartDate(), supportRequest.getEndDate(), supportRequest.getFixSession(), supportRequest.getMsgTypes());
             emailService.sendReplyWithAttachment(email, path, "Your logs request", "Please find the request information attached.");
             Files.delete(path);
         }
-        catch (RequestResolverException e)
-        {
-            status = "The logs could not be retrieved.";
-            e.printStackTrace();
-        }
-        catch (MessagingException e)
-        {
-            status = "The email could not be sent.";
-            e.printStackTrace();
-        }
-        catch (IOException e)
+        catch (RequestResolverException | MessagingException | IOException e)
         {
             e.printStackTrace();
         }
-        return status;
     }
 
-    private String disconnectReasonRequest(SupportRequest supportRequest)
+    private void disconnectReasonRequest(SupportRequest supportRequest)
     {
-        String reason = "The disconnection reason could not be resolved.";
+        String reason;
         try
         {
             reason = requestResolverService.getDisconnectionReason(supportRequest.getFixSession(), supportRequest.getStartDate(), supportRequest.getEndDate());
@@ -88,34 +74,28 @@ public class SupportRobotController
             {
                 emailService.sendReply("support@itiviti.com", supportRequest.getFixSession(), "Manual Disconnection Reason Request",
                     "Please check disconnection reason between " + supportRequest.getStartDate() + " and " + supportRequest.getEndDate());
-                reason = "The disconnection reason could not be resolved. A support issue has been raised and we are looking into it.";
+            }
+            else
+            {
+                emailService.sendReply(email, supportRequest.getFixSession(), "Session Disconnection Reason", reason);
             }
         }
         catch (RequestResolverException | MessagingException e)
         {
             e.printStackTrace();
         }
-        return reason;
     }
 
-    private String sessionDetailsRequest(SupportRequest supportRequest)
+    private void sessionDetailsRequest(SupportRequest supportRequest)
     {
-        String status = "The session info has been emailed successfully.";
         try
         {
             String sessionInfo = requestResolverService.getSessionInfo(supportRequest.getFixSession());
             emailService.sendReply(email, sessionInfo, "Your session info request", sessionInfo);
         }
-        catch (RequestResolverException e)
+        catch (RequestResolverException | MessagingException e)
         {
-            status = "The session info could not be retrieved.";
             e.printStackTrace();
         }
-        catch (MessagingException e)
-        {
-            status = "The email could not be sent.";
-            e.printStackTrace();
-        }
-        return status;
     }
 }
